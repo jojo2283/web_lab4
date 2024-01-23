@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 
 @Service
-public class UserService implements UserDetailsService {
+public class UserService  {
     @Autowired
     private UserRepo userRepo;
 
@@ -36,40 +36,24 @@ public class UserService implements UserDetailsService {
         return User.toModel(user);
     }
 
-    public User authInfo(UserEntity user) throws UserNotFoundException, WrongPasswordException {
-        UserEntity findedUser = userRepo.findByUsername(user.getUsername());
-        if (findedUser != null) {
-            if (Objects.equals(findedUser.getPassword(), user.getPassword())) {
-                return User.toModel(findedUser);
-            } else {
-                throw new WrongPasswordException("wrong password");
-            }
-        } else {
-            throw new UserNotFoundException("user not found");
-        }
-
-    }
+//    public User authInfo(UserEntity user) throws UserNotFoundException, WrongPasswordException {
+//        UserEntity findedUser = userRepo.findByUsername(user.getUsername());
+//        if (findedUser != null) {
+//            if (Objects.equals(findedUser.getPassword(), user.getPassword())) {
+//                return User.toModel(findedUser);
+//            } else {
+//                throw new WrongPasswordException("wrong password");
+//            }
+//        } else {
+//            throw new UserNotFoundException("user not found");
+//        }
+//
+//    }
 
     public Long delete(Long id) {
         userRepo.deleteById(id);
         return id;
     }
 
-    @Override
-    @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity user = userRepo.findByUsername(username);
-        if (user != null) {
-            return new org.springframework.security.core.userdetails.User(
-                    user.getUsername(),
-                    user.getPassword(),
-                    null
-            );
-        } else {
-            throw new UsernameNotFoundException("user not found");
 
-
-        }
-
-    }
 }

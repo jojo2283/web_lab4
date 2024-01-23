@@ -1,59 +1,56 @@
 package com.example.web_lab4.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-@Entity
 
+@Data
+@Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
     private String password;
+
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
     private List<HitsEntity> hitList;
 
-    public UserEntity() {
-    }
-
-    public List<HitsEntity> getHitList() {
-        return hitList;
-    }
 
     public void setHitList(List<HitsEntity> hitList) {
         this.hitList = hitList;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return true;
     }
+
+
 
     public void setUsername(String username) {
         this.username = username;
@@ -61,19 +58,12 @@ public class UserEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
-
-    public String getPassword() {
-        return password;
+        return Collections.emptyList();
     }
 
     public void setPassword(String password) {
-        this.password = password;
-    }
 
-    public Long getId() {
-        return id;
+        this.password = password;
     }
 
     public void setId(Long id) {
