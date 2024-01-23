@@ -4,7 +4,7 @@ import React from 'react';
 const DataTable = ({ data }) => {
   return (
     <TableContainer component={Paper}>
-      <Table  aria-label="simple table">
+      <Table aria-label="simple table">
         <TableHead>
           <TableRow>
             <TableCell  >X</TableCell>
@@ -14,16 +14,17 @@ const DataTable = ({ data }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          
-        {data.map((row) => (
-            <TableRow             
+
+          {data.map((row,index) => (
+            <TableRow
+              key={index}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
-              
+
               <TableCell  >{row.x}</TableCell>
               <TableCell  >{row.y}</TableCell>
               <TableCell  >{row.r}</TableCell>
-              <TableCell  >{row.hit? 'Yes':'No'}</TableCell>
+              <TableCell  >{row.hit ? 'Yes' : 'No'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

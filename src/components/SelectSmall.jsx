@@ -10,7 +10,10 @@ import { setxValue } from '../actions/radiusActions';
 export default function SelectSmall() {
     const dispatch = useDispatch();
 
+    const [value, setValue] = React.useState('');
+
   const handleChange = (event) => {
+    setValue(event.target.value)
     dispatch(setxValue(event.target.value))
   };
 
@@ -20,7 +23,7 @@ export default function SelectSmall() {
       <Select
         labelId="demo-select-small-label"
         id="demo-select-small"
-        
+        value={value}
         label="Age"
         onChange={handleChange}
         

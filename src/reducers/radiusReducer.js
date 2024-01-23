@@ -1,5 +1,5 @@
 const initialState = {
-    radius: null,
+    radius: 1,
     xValue:null,
     yValue:null,
   };

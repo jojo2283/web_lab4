@@ -11,6 +11,7 @@ const CanvasComponent = () => {
     const radius = useSelector((state) => state.radius.radius);
     const userData = useSelector((state) => state.user.userData);
     const userId = useSelector(state => state.user.userId);
+    
 
     const drawCircle = (ctx, radius, width, height) => {
         ctx.beginPath();
@@ -117,8 +118,16 @@ const CanvasComponent = () => {
     const drawPoints = useCallback((ctx, width, height, radius) => {
         userData.forEach(point => {
             ctx.beginPath();
-            ctx.arc((point.x * 3 / radius) * 32 + width / 2, -(point.y / radius) * 32 * 3 + height / 2, 5, 0, Math.PI * 2); // Радиус 5 пикселей для точки
-            console.log((point.x / radius) * 32 * 3);
+            if(point.r !== 0 && radius!==0){
+            ctx.arc((point.x * 3 / Math.abs(radius)) * 32 + width / 2, -(point.y /  Math.abs(radius)) * 32 * 3 + height / 2, 5, 0, Math.PI * 2); // Радиус 5 пикселей для точки
+            }else{
+                
+                if (point.r === 0 && radius ==='0'){
+                ctx.arc((point.x * 3 /3) * 32 + width / 2, -(point.y / 3 ) * 32 * 3 + height / 2, 5, 0, Math.PI * 2); // Радиус 5 пикселей для точки
+                
+                }
+            }
+
             if (point.hit === false) {
                 ctx.fillStyle = 'red';
             } else {
@@ -135,20 +144,38 @@ const CanvasComponent = () => {
         const canvas = canvasRef.current;
         const context = canvas.getContext('2d');
         const { width, height } = canvas;
+        const token =  sessionStorage.getItem('token')
 
         const handleCanvasClick = async (event) => {
-            const xValue = (event.offsetX - canvas.width / 2) / 32;
-            const yValue = -(event.offsetY - canvas.height / 2) / 32;
+            
+            let xValue = (event.offsetX - canvas.width / 2) /32;
+            let  yValue = -(event.offsetY - canvas.height / 2) /32;
+
+            if (radius > 0){
+              xValue = (event.offsetX - canvas.width / 2) * radius/(32*3);
+               yValue = -(event.offsetY - canvas.height / 2) * radius/(32*3);
+            }
+            if (radius < 0){
+                xValue = (event.offsetX - canvas.width / 2) * -radius/(32*3);
+                yValue = -(event.offsetY - canvas.height / 2) *- radius/(32*3);
+            }
+            
+            
+                
+            
+
             const url = 'http://localhost:8080/hits';
             const queryParams = { userId: userId };
             const requestBody = { x: Number(xValue), y: Number(yValue), r: Number(radius) };
             const urlWithParams = new URL(url);
             Object.keys(queryParams).forEach(key => urlWithParams.searchParams.append(key, queryParams[key]));
+            
 
             await fetch(urlWithParams.toString(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify(requestBody),
             });
@@ -157,9 +184,15 @@ const CanvasComponent = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
                 },
 
             });
+
+            if (response.status === 403){
+                console.error('Invalid token ');
+              }
+        
 
             const data = await response.json();
 
@@ -173,7 +206,7 @@ const CanvasComponent = () => {
 
         context.clearRect(0, 0, width, height);
 
-        if (radius != 0) {
+        if (radius !== '0') {
             if (radius > 0) {
                 drawCircle(context, 3 * 32, width, height);
                 drawTriangle(context, 3 * 32, width, height);
@@ -194,6 +227,7 @@ const CanvasComponent = () => {
         } else {
             drawAxes(context, width, height);
             drawArrows(context, width, height);
+            drawPoints(context, width, height, radius);
         }
 
 

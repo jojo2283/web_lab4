@@ -8,18 +8,22 @@ import { Button, TextField } from '@mui/material';
 
 const RegisterPage = () => {
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // const [password, setPassword] = useState('');
+  const [noneHashpassword, setNoneHashPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
   const dispatch = useDispatch();
+  const md5 = require('md5')
+
 
   const handleRegister = async () => {
 
     setError(null);
+    let password = (md5(noneHashpassword));
 
     try {
-      const response = await fetch('http://localhost:8080/users', {
+      const response = await fetch('http://localhost:8080/api/v1/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,27 +34,36 @@ const RegisterPage = () => {
       if (response.ok) {
         try {
 
-          const response = await fetch('http://localhost:8080/users/auth', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-          });
-
-          const data = await response.json();
-
-          if (data != null) {
-            authContext.login(username, password);
-            authContext.toStorage(data.id, data.hitsList);
 
 
-            dispatch(setUser(data.id));
-            dispatch(setUserData(data.hitsList));
+          const tokenData = await response.json();
 
-            navigate('/dashboard');
-          } else {
-            setError('Неверное имя пользователя или пароль');
+          if (tokenData != null) {
+            sessionStorage.setItem('token', tokenData.token);
+
+            const getResponse = await fetch('http://localhost:8080/users?id=' + tokenData.id, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + tokenData.token
+              },
+            })
+
+
+            const data = await getResponse.json();
+
+            if (data != null) {
+              authContext.login(username);
+              authContext.toStorage(data.id, data.hitsList);
+
+
+              dispatch(setUser(data.id));
+              dispatch(setUserData(data.hitsList));
+
+              navigate('/dashboard');
+            } else {
+              setError('Неверное имя пользователя или пароль');
+            }
           }
         } catch (err) {
           console.error('Ошибка при отправке запроса: ', err);
@@ -81,8 +94,8 @@ const RegisterPage = () => {
         label="Password"
         type="password"
         autoComplete="current-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        value={noneHashpassword}
+        onChange={(e) => setNoneHashPassword(e.target.value)}
       />
       <div style={{ margin: '7px 0px 0px 0px' }}>
         <Button

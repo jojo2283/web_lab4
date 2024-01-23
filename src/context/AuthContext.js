@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState,useEffect  } from 'react';
 import { useDispatch } from 'react-redux';
 import { setUser, setUserData, setUsername } from '../actions/userActions';
 
@@ -12,17 +12,23 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(storedIsAuthenticated);
 
 
-  const storedUsername = sessionStorage.getItem('username');
-
-  const storedID = sessionStorage.getItem('userId');
-  const storedUserData = JSON.parse(sessionStorage.getItem('userData'));
 
 
-  dispatch(setUser(storedID));
-  dispatch(setUserData(storedUserData));
-  dispatch(setUsername(storedUsername))
+  useEffect(() => {
+    const storedUsername = sessionStorage.getItem('username');
+    const storedID = sessionStorage.getItem('userId');
+    const storedUserData = JSON.parse(sessionStorage.getItem('userData'));
 
-
+    if (storedID) {
+      dispatch(setUser(storedID));
+    }
+    if (storedUserData) {
+      dispatch(setUserData(storedUserData));
+    }
+    if (storedUsername) {
+      dispatch(setUsername(storedUsername));
+    }
+  }, [dispatch]);
   const login = (user) => {
     setIsAuthenticated(true);
     dispatch(setUsername(user));
@@ -46,6 +52,7 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem('username');
     sessionStorage.removeItem('userId');
     sessionStorage.removeItem('userData');
+    sessionStorage.removeItem('token');
 
   };
 

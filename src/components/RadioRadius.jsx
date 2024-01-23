@@ -6,20 +6,22 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import { useDispatch } from 'react-redux';
 import { setNewRadius } from '../actions/radiusActions';
-
+import { useSelector } from 'react-redux';
 export default function RadioRadius() {
   const dispatch = useDispatch();
+  const radius = useSelector(state => state.radius.radius);
 
   const handleChange = (event) => {
     dispatch(setNewRadius(event.target.value))
   };
+
   return (
     <FormControl size='small'>
       <FormLabel id="demo-radio-buttons-group-label">Choose R value</FormLabel>
       <RadioGroup
       row
         aria-labelledby="demo-radio-buttons-group-label"
-        defaultValue=""
+        value={radius} 
         
         name="radio-buttons-group"
         onChange={handleChange}

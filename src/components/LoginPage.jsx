@@ -8,20 +8,24 @@ import '../AuthForm.css';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-
+  const [noneHashpassword, setNoneHashPassword] = useState('');
+  const md5 = require('md5')
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
 
 
+
   const handleLogin = async () => {
+
+    let password = (md5(noneHashpassword));
+
 
     setError(null);
 
     try {
 
-      const response = await fetch('http://localhost:8080/users/auth', {
+      const response = await fetch('http://localhost:8080/api/v1/auth/authenticate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,36 +33,71 @@ const LoginPage = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      if (response.status === 403) {
 
-      if (data) {
-        authContext.login(username);
-        authContext.toStorage(data.id, data.hitsList);
-
-        navigate('/dashboard');
-      } else {
         setError('Неверное имя пользователя или пароль');
       }
-    } catch (err) {
-      console.error('Ошибка при отправке запроса: ', err);
-      setError('Ошибка при попытке входа');
 
+      if (response.status === 400) {
+        setError('Ошибка при попытке входа');
+      }
+      const tokenData = await response.json();
+
+      if (tokenData != null) {
+        sessionStorage.setItem('token', tokenData.token);
+
+        const getResponse = await fetch('http://localhost:8080/users?id=' + tokenData.id, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + tokenData.token
+          },
+        })
+        const data = await getResponse.json();
+        if (response.status === 403) {
+          console.error('Invalid token ');
+        }
+        else {
+          if (response.status === 200) {
+            if (data) {
+              authContext.login(username);
+              authContext.toStorage(data.id, data.hitsList);
+
+              navigate('/dashboard');
+            } else {
+              setError('Неверное имя пользователя или пароль');
+            }
+          }
+        }
+
+
+
+
+      }
+    } catch (err) {
+
+      console.error('Ошибка при отправке запроса: ', err);
+      if (error === null){
+        setError('Ошибка при попытке входа');
+      }
+      
     }
+
   };
 
   // Отображение компонента с формой входа, кнопкой и обработкой ошибок
   return (
     <div>
       <div className='auth-page'>
-      
-          <TextField
-            required
 
-            id="outlined-basic" label="Username" variant="outlined"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-       
+        <TextField
+          required
+
+          id="outlined-basic" label="Username" variant="outlined"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
       </div>
 
       <TextField
@@ -68,8 +107,8 @@ const LoginPage = () => {
         label="Password"
         type="password"
         autoComplete="current-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        value={noneHashpassword}
+        onChange={(e) => setNoneHashPassword(e.target.value)}
       />
 
 

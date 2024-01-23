@@ -6,7 +6,7 @@ import { setUserData } from '../actions/userActions';
 import SelectSmall from './SelectSmall';
 import { Button, TextField } from '@mui/material';
 import RadioRadius from './RadioRadius';
-import {DeleteOutline,Send} from '@mui/icons-material'
+import { DeleteOutline, Send } from '@mui/icons-material'
 import '../index.css'
 
 const FormComponent = () => {
@@ -16,19 +16,20 @@ const FormComponent = () => {
   const userId = useSelector(state => state.user.userId);
   const radius = useSelector(state => state.radius.radius);
   const dispatch = useDispatch();
-
+  const safeYValue = yValue ?? '';
+  const token = sessionStorage.getItem('token')
 
 
 
   const validate = () => {
     let isValid = true;
     let errors = {};
-
-    if (!xValue) {
-      errors.x = 'Choose value for X.';
-      isValid = false;
+    if (xValue !== 0) {
+      if (!xValue) {
+        errors.x = 'Choose value for X.';
+        isValid = false;
+      }
     }
-
     if (!radius) {
       errors.radius = 'Choose value for Radius.';
       isValid = false;
@@ -61,10 +62,12 @@ const FormComponent = () => {
       const urlWithParams = new URL(url);
       Object.keys(queryParams).forEach(key => urlWithParams.searchParams.append(key, queryParams[key]));
 
+
       await fetch(urlWithParams.toString(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify(requestBody),
       });
@@ -74,9 +77,17 @@ const FormComponent = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+
+
         },
 
+
       });
+
+      if (response.status === 403) {
+        console.error('Invalid token ');
+      }
 
       const data = await response.json();
 
@@ -91,13 +102,22 @@ const FormComponent = () => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
       },
 
     });
-    if (response) {
-      dispatch(setUserData([]));
-      sessionStorage.setItem('userData', [])
+    if (response.status === 403) {
+      console.error('Invalid token ');
     }
+    else {
+      if (response.status === 200) {
+        if (response) {
+          dispatch(setUserData([]));
+          sessionStorage.setItem('userData', [])
+        }
+      }
+    }
+
   }
 
   return (
@@ -109,27 +129,27 @@ const FormComponent = () => {
       <div>
 
         <TextField id="standard-basic" label="Y [-5;3]" variant="standard"
-          value={yValue} onChange={handleYChange} />
+          value={safeYValue} onChange={handleYChange} />
 
         {errors.y && <div style={{ color: 'red' }}>{errors.y}</div>}
       </div>
-      <div style={{margin :'15px 0px 10px 0pxн'}}>
+      <div style={{ margin: '15px 0px 10px 0pxн' }}>
 
         <RadioRadius />
         {errors.radius && <div style={{ color: 'red' }}>{errors.radius}</div>}
       </div>
       <div className='hit-buttons'>
-      <Button
-      type='submit'
-      variant="outlined"
-      endIcon={<Send />}
-      >Submit</Button>
-      <Button 
-      variant="outlined"
-       endIcon={<DeleteOutline />}
-       onClick={clearTable}>
-        Delete
-      </Button>
+        <Button
+          type='submit'
+          variant="outlined"
+          endIcon={<Send />}
+        >Submit</Button>
+        <Button
+          variant="outlined"
+          endIcon={<DeleteOutline />}
+          onClick={clearTable}>
+          Delete
+        </Button>
       </div>
     </form>
   );
